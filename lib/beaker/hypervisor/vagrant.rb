@@ -2,7 +2,6 @@ require 'open3'
 
 module Beaker
   class Vagrant < Beaker::Hypervisor
-
     require 'beaker/hypervisor/vagrant_virtualbox'
     # Return a random mac address
     #
@@ -49,7 +48,11 @@ module Beaker
         v_file << "    v.vm.box_download_insecure = '#{host['box_download_insecure']}'\n" unless host['box_download_insecure'].nil?
         v_file << "    v.vm.box_check_update = '#{host['box_check_update'] ||= 'true'}'\n"
         v_file << "    v.vm.synced_folder '.', '/vagrant', disabled: true\n" if host['synced_folder'] == 'disabled'
-        v_file << private_network_generator(host)
+        #
+        # Standard network setup
+        #
+        # v_file << private_network_generator(host)
+
 
         unless host['mount_folders'].nil?
           host['mount_folders'].each do |name, folder|
@@ -71,18 +74,18 @@ module Beaker
           end
         end
 
-        if /windows/i.match(host['platform'])
-          #due to a regression bug in versions of vagrant 1.6.2, 1.6.3, 1.6.4, >= 1.7.3 ssh fails to forward
-          #automatically (note <=1.6.1, 1.6.5, 1.7.0 - 1.7.2 are uneffected)
-          #Explicitly setting SSH port forwarding due to this bug
-          v_file << "    v.vm.network :forwarded_port, guest: 22, host: 2222, id: 'ssh', auto_correct: true\n"
-          v_file << "    v.vm.network :forwarded_port, guest: 3389, host: 3389, id: 'rdp', auto_correct: true\n"
-          v_file << "    v.vm.network :forwarded_port, guest: 5985, host: 5985, id: 'winrm', auto_correct: true\n"
-          v_file << "    v.vm.guest = :windows\n"
-        end
+        #
+        # Ssh
+        #
+        v_file << "    v.vm.network :forwarded_port, guest: 22, host: 2222, id: 'ssh', protocol: 'tcp', auto_correct: true\n"
+        #
+        # Add network on which other OVM machines are on
+        #
+        v_file << "    v.vm.network :private_network, ip: '192.168.56.3', name: 'vboxnet5', adatpter: 1\n"
+        #
+        #
 
         if /osx/i.match(host['platform'])
-          v_file << "    v.vm.network 'private_network', ip: '10.0.1.10'\n"
           v_file << "    v.vm.synced_folder '.', '/vagrant', :nfs => true\n"
         end
 
