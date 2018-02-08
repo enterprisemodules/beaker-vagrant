@@ -21,7 +21,8 @@ class Beaker::VagrantVirtualbox < Beaker::Vagrant
     provider_section << "    v.vm.provider :virtualbox do |vb|\n"
     provider_section << "      vb.customize ['modifyvm', :id, '--memory', '#{memsize(host,options)}', '--cpus', '#{cpus(host,options)}']\n"
     provider_section << "      vb.vbguest.auto_update = false" if options[:vbguest_plugin] == 'disable'
-
+    provider_section << "      vb.customize ['modifyvm', :id, '--nicpromisc2', 'allow-all']\n"
+    provider_section << "      vb.customize ['modifyvm', :id, '--nicpromisc3', 'allow-all']\n"
     # Guest volume support
     # - Creates a new AHCI controller with the requisite number of ports,
     #   the default controller is limited in its number of supported ports (2).
@@ -52,6 +53,11 @@ class Beaker::VagrantVirtualbox < Beaker::Vagrant
         ])
       end
     end
+    #
+    # Add network Allow All
+    #
+    provider_section << "      vb.customize ['modifyvm', :id, '--nicpromisc2', 'allow-all']\n"
+    provider_section << "      vb.customize ['modifyvm', :id, '--nicpromisc3', 'allow-all']\n"
 
     provider_section << "      vb.customize [\"modifyvm\", :id, \"--natdnshostresolver1\", \"#{host['natdns']}\"]\n" unless host['natdns'].nil?
 
@@ -60,10 +66,6 @@ class Beaker::VagrantVirtualbox < Beaker::Vagrant
     provider_section << "      vb.gui = true\n" unless host['vb_gui'].nil?
 
     provider_section << "      [\"modifyvm\", :id, \"--cpuidset\", \"1\",\"000206a7\",\"02100800\",\"1fbae3bf\",\"bfebfbff\"\]\n" if /osx/i.match(host['platform'])
-    #
-    # Add network Allow All
-    #
-    provider_section << "      vb.customize ['modifyvm', :id, '--nicpromisc3', 'allow-all']\n"
 
     if host['disk_path']
       unless File.exist?(host['disk_path'])
