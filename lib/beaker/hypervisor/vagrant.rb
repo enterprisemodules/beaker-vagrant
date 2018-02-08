@@ -80,10 +80,12 @@ module Beaker
         # Ssh
         #
         v_file << "    v.vm.network :forwarded_port, guest: 22, host: 2222, id: 'ssh', protocol: 'tcp', auto_correct: true\n"
+        v_file << "    v.vm.customize ['modifyvm', :id, '--nicpromisc3', 'allow-all']\n"
         #
         # Add network on which other OVM machines are on
         #
         v_file << "    v.vm.network :private_network, ip: '192.168.56.3', name: 'vboxnet5', adatpter: 1\n"
+        v_file << "    v.vm.customize ['modifyvm', :id, '--nicpromisc3', 'allow-all']\n"
 
         if /osx/i.match(host['platform'])
           v_file << "    v.vm.synced_folder '.', '/vagrant', :nfs => true\n"
