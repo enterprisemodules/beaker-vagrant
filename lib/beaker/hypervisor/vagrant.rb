@@ -38,9 +38,6 @@ module Beaker
       v_file << "  c.ssh.forward_agent = true\n" if options[:forward_ssh_agent] == true
       v_file << "  c.ssh.insert_key = false\n"
 
-      # Add network Allow All
-      v_file << "  c.vm.provider \"virtualbox\" do |v|\n    v.customize [\"modifyvm\", :id, \"--nicpromisc3\", \"allow-all\"]\n  end\n\n"
-
       hosts.each do |host|
         host.name.tr!('_','-') # Rewrite Hostname with hyphens instead of underscores to get legal hostname
         host['ip'] ||= randip #use the existing ip, otherwise default to a random ip
@@ -87,8 +84,6 @@ module Beaker
         # Add network on which other OVM machines are on
         #
         v_file << "    v.vm.network :private_network, ip: '192.168.56.3', name: 'vboxnet5', adatpter: 1\n"
-        #
-        #
 
         if /osx/i.match(host['platform'])
           v_file << "    v.vm.synced_folder '.', '/vagrant', :nfs => true\n"

@@ -21,6 +21,10 @@ class Beaker::VagrantVirtualbox < Beaker::Vagrant
     provider_section << "    v.vm.provider :virtualbox do |vb|\n"
     provider_section << "      vb.customize ['modifyvm', :id, '--memory', '#{memsize(host,options)}', '--cpus', '#{cpus(host,options)}']\n"
     provider_section << "      vb.vbguest.auto_update = false" if options[:vbguest_plugin] == 'disable'
+    #
+    # Add network Allow All
+    #
+    provider_section << "      vb.customize ['modifyvm', :id, '--nicpromisc3', 'allow-all']\n"
 
     # Guest volume support
     # - Creates a new AHCI controller with the requisite number of ports,
