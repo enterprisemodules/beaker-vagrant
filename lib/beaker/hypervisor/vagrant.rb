@@ -3,6 +3,7 @@ require 'open3'
 module Beaker
   class Vagrant < Beaker::Hypervisor
     require 'beaker/hypervisor/vagrant_virtualbox'
+    #
     # Return a random mac address
     #
     # @return [String] a random mac address
@@ -37,6 +38,9 @@ module Beaker
       v_file << "  c.ssh.forward_agent = true\n" if options[:forward_ssh_agent] == true
       v_file << "  c.ssh.insert_key = false\n"
 
+      # Add network Allow All
+      v_file << "  c.vm.provider \"virtualbox\" do |v|\n    v.customize [\"modifyvm\", :id, \"--nicpromisc3\", \"allow-all\"]\n  end\n\n"
+
       hosts.each do |host|
         host.name.tr!('_','-') # Rewrite Hostname with hyphens instead of underscores to get legal hostname
         host['ip'] ||= randip #use the existing ip, otherwise default to a random ip
@@ -48,11 +52,12 @@ module Beaker
         v_file << "    v.vm.box_download_insecure = '#{host['box_download_insecure']}'\n" unless host['box_download_insecure'].nil?
         v_file << "    v.vm.box_check_update = '#{host['box_check_update'] ||= 'true'}'\n"
         v_file << "    v.vm.synced_folder '.', '/vagrant', disabled: true\n" if host['synced_folder'] == 'disabled'
+
         #
         # Standard network setup
         #
         # v_file << private_network_generator(host)
-
+        #
 
         unless host['mount_folders'].nil?
           host['mount_folders'].each do |name, folder|
